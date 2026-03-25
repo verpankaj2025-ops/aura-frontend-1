@@ -27,10 +27,10 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const { addMessage, setTyping, updateLastMessage } = useChatStore()
 
   useEffect(() => {
-    // 🔥 FIXED URL (NO localhost)
+    // 🔥 FINAL PRODUCTION SOCKET URL (HTTPS → auto WSS)
     const SOCKET_URL =
       process.env.NEXT_PUBLIC_SOCKET_URL ||
-      "http://72.61.236.197:5000"
+      "https://api.aurawellness.cloud"
 
     const newSocket = io(SOCKET_URL, {
       auth: {
@@ -49,14 +49,24 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsConnected(false)
     })
 
-    newSocket.on("new_message", (data: { chatId: string | number; message: Message }) => {
-      addMessage(data.chatId, data.message)
-      updateLastMessage(data.chatId, data.message.text, data.message.timestamp)
-    })
+    newSocket.on(
+      "new_message",
+      (data: { chatId: string | number; message: Message }) => {
+        addMessage(data.chatId, data.message)
+        updateLastMessage(
+          data.chatId,
+          data.message.text,
+          data.message.timestamp
+        )
+      }
+    )
 
-    newSocket.on("typing", (data: { chatId: string | number; isTyping: boolean }) => {
-      setTyping(data.chatId, data.isTyping)
-    })
+    newSocket.on(
+      "typing",
+      (data: { chatId: string | number; isTyping: boolean }) => {
+        setTyping(data.chatId, data.isTyping)
+      }
+    )
 
     setSocket(newSocket)
 

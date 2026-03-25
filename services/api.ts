@@ -1,9 +1,9 @@
 import axios from "axios"
 
-// 🔥 FINAL FIXED BASE URL
+// 🔥 FINAL PRODUCTION URL (HTTPS)
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "http://72.61.236.197:5000/api"
+  "https://api.aurawellness.cloud/api"
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -12,7 +12,6 @@ export const api = axios.create({
   },
 })
 
-// ✅ Request interceptor (token add)
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("token")
@@ -25,7 +24,6 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// ✅ Response interceptor (handle 401)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -35,7 +33,6 @@ api.interceptors.response.use(
         window.location.href = "/login"
       }
     }
-
     return Promise.reject(error)
   }
 )
