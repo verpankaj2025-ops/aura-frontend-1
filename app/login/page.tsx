@@ -9,12 +9,13 @@ import { useAuthStore } from "@/store/authStore"
 import { api } from "@/services/api"
 
 export default function LoginPage() {
+  const router = useRouter()
+  const { login } = useAuthStore()
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-  const { login } = useAuthStore()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,64 +23,84 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const response = await api.post('/auth/login', { email, password })
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      })
 
-      if (response.status === 200) {
+      if (response.data?.token) {
+        // ✅ Save token locally
+        localStorage.setItem("token", response.data.token)
+
+        // ✅ Update Zustand store
         login(response.data.user, response.data.token)
-        router.push('/dashboard')
+
+        // ✅ Redirect
+        router.push("/dashboard")
+      } else {
+        setError("Invalid login response")
       }
     } catch (err: any) {
-      console.error('Login error:', err)
-      setError(err.response?.data?.message || 'Failed to connect to the server')
+      console.error("Login error:", err)
+
+      setError(
+        err?.response?.data?.message ||
+        "Server error. Please try again."
+      )
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Sign in</CardTitle>
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Sign in</CardTitle>
           <CardDescription className="text-center">
-            Enter your email and password to access your account
+            Enter your email and password
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
+            
             {error && (
               <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md">
                 {error}
               </div>
             )}
-            <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="email">
-                Email
-              </label>
+
+            <div>
+              <label className="text-sm">Email</label>
               <Input
-                id="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder="pankaj@test.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="password">
-                Password
-              </label>
+
+            <div>
+              <label className="text-sm">Password</label>
               <Input
-                id="password"
                 type="password"
+                placeholder="******"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign in'}
+
+            <Button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={isLoading}
+            >
+              {isLoading ? "Signing in..." : "Sign in"}
             </Button>
+
           </form>
         </CardContent>
       </Card>
